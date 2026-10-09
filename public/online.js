@@ -4,23 +4,34 @@ const apiCall=async(path,body)=>{try{const r=await fetch('/api/'+path,{method:bo
 const avatar=d=>d&&d.id&&d.avatar?`<img src="https://cdn.discordapp.com/avatars/${esc(d.id)}/${esc(d.avatar)}.png?size=32" width=20 height=20 style="border-radius:50%;vertical-align:middle" alt="">`:'';
 const dcName=d=>d?`${avatar(d)} ${esc(d.name)}`:'';
 function oStop(){clearInterval(OL.timer);OL.timer=null}
+const RANKC={Bronze:'#c58a5a',Silver:'#b8c0cc',Gold:'#d6b04a',Platinum:'#6fd0c8',Diamond:'#7cc4ff'};
+const rankBadge=r=>`<span class=ol-rank style="--rc:${RANKC[rankName(r)]}">${rankName(r)}</span>`;
+const olStat=(l,v)=>`<div class=ol-stat><b>${v}</b><span>${l}</span></div>`;
 function renderOnline(){
- const m=OL.me,f=OL.form,top=`<div class=wrap><h2>Online</h2><div class=bar><button data-a=${OL.sub=='hub'?'menu':'o_back'}>${nf(IC.back)} ${OL.sub=='hub'?'Menu':'Back'}</button></div>${OL.msg?`<p style="color:#ffd24a">${esc(OL.msg)}</p>`:''}`;
- if(OL.sub=='queue')return `${top}<h3>Searching for a ${OL.q.mode} opponent</h3><p class=mut>${OL.q.sec}s. Ranked searches widen their rating range as you wait.</p><div class=bar><button data-a=o_qcancel>Cancel</button></div></div>`;
- if(OL.sub=='lobby')return `${top}<h3>Room code: <b style="letter-spacing:4px;font-size:28px">${esc(OL.room.code)}</b></h3><p class=mut>Share this code with a friend. The match starts when they join.</p><div class=bar><button data-a=o_rcancel>Close room</button></div></div>`;
- if(OL.sub=='board')return `${top}<h3>Leaderboard</h3>${(OL.board||[]).map((u,i)=>`<div class=opp style="--c:${i<3?'#d6b04a':'#9ea1aa'}"><div><b>${i+1}. ${esc(u.username)}</b> ${dcName(u.discord)}<br><span class=mut>${rankName(u.rating)} ${u.rating} · ${u.wins}W ${u.losses}L</span></div></div>`).join('')||'<p class=mut>No ranked games played yet.</p>'}</div>`;
- if(OL.sub=='hist')return `${top}<h3>Online match history</h3>${(OL.hist||[]).map(h=>`<div class=opp style="--c:${h.result=='win'?'#6fbf6a':'#e0603f'}"><div><b>${h.result=='win'?'Victory':'Defeat'}</b> vs ${esc(h.opp)} <span class=mut>(${esc(h.mode)}${h.rd!=null&&h.mode=='ranked'?', '+(h.rd>=0?'+':'')+h.rd:''}${h.reason&&h.reason!='normal'?', '+esc(h.reason):''})</span><br><span class=mut>${new Date(h.time).toLocaleString()}</span></div><button data-a=o_hexp data-id=${esc(h.id)}>Export log</button></div>`).join('')||'<p class=mut>No online matches yet.</p>'}</div>`;
- if(!m)return `${top}<p class=mut>Create an account to play other people. Accounts are standalone; you can link Discord afterwards for login and password recovery.</p>
- <div class=bar><input id=ou placeholder="Username" value="${esc(f.u)}" maxlength=20 autocomplete=username> <input id=op type=password placeholder="Password (8+ chars)" value="${esc(f.p)}" autocomplete=current-password></div>
- <div class=bar><button class=pri data-a=o_login>Log in</button><button data-a=o_register>Register</button></div>
- <div class=bar><button data-a=o_discord data-m=login>Log in with Discord</button><button data-a=o_discord data-m=reset>Forgot password (via Discord)</button></div></div>`;
- const ok=deckIds.length==60;
- return `${top}<div class=opp style="--c:#d6b04a"><div><b>${esc(m.username)}</b> ${m.discord?dcName(m.discord):''}<br><span class=mut>${rankName(m.rating)} ${m.rating} · ${m.wins}W ${m.losses}L · Deck: ${esc(deckNm)} (${deckIds.length}/60)</span></div><button data-a=o_logout>Log out</button></div>
- ${OL.cur?`<div class=bar><button class=pri data-a=o_resume>Resume your active match</button></div>`:''}
- ${ok?'':'<p class=mut>Your active deck needs exactly 60 cards before you can queue. Open the Deck Builder from the menu.</p>'}
- <div class=bar><button class=pri data-a=o_qranked ${ok&&!OL.cur?'':'disabled'}>Ranked match</button><button data-a=o_qcasual ${ok&&!OL.cur?'':'disabled'}>Casual match</button></div>
- <div class=bar><button data-a=o_rcreate ${ok&&!OL.cur?'':'disabled'}>Create private room</button><input id=orm placeholder="Room code" value="${esc(f.room)}" maxlength=6 style="width:110px;text-transform:uppercase"><button data-a=o_rjoin ${ok&&!OL.cur?'':'disabled'}>Join room</button></div>
- <div class=bar><button data-a=o_board>Leaderboard</button><button data-a=o_hist>Match history</button>${m.discord?'<button data-a=o_unlink>Unlink Discord</button>':'<button data-a=o_discord data-m=link>Link Discord</button>'}</div></div>`}
+ const m=OL.me,f=OL.form;
+ const head=(t,btn)=>`<div class=ol-head>${btn===null?'':`<button data-a=${btn||'menu'}>${nf(IC.back)} ${btn?'Back':'Menu'}</button>`}<h2>${t}</h2></div>${OL.msg?`<div class=ol-msg>${esc(OL.msg)}</div>`:''}`;
+ if(OL.sub=='queue')return `<div class="wrap ol">${head('Online',null)}<div class="ol-card ol-center"><div class=ol-spin></div><h3>Searching for a ${OL.q.mode} opponent</h3><p class=mut>${OL.q.sec}s elapsed. Ranked searches widen their rating range the longer you wait.</p><button data-a=o_qcancel>Cancel</button></div></div>`;
+ if(OL.sub=='lobby')return `<div class="wrap ol">${head('Private room',null)}<div class="ol-card ol-center"><p class=mut>Share this code with a friend. The match starts as soon as they join.</p><div class=ol-code>${esc(OL.room.code)}</div><div class=ol-grid><button data-a=o_rcopy>Copy code</button><button data-a=o_rcancel>Close room</button></div></div></div>`;
+ if(OL.sub=='board')return `<div class="wrap ol">${head('Leaderboard','o_back')}${(OL.board||[]).map((u,i)=>`<div class=ol-row style="--rc:${i==0?'#d6b04a':i==1?'#b8c0cc':i==2?'#c58a5a':'var(--line)'}"><span class=ol-pos>${i+1}</span><div class=ol-who><b>${esc(u.username)}</b>${u.discord?`<small>${dcName(u.discord)}</small>`:''}</div>${rankBadge(u.rating)}<b class=ol-num>${u.rating}</b><span class="mut ol-wl">${u.wins}W ${u.losses}L</span></div>`).join('')||'<div class="ol-card mut ol-center">No ranked games have been played yet.</div>'}</div>`;
+ if(OL.sub=='hist')return `<div class="wrap ol">${head('Online match history','o_back')}${(OL.hist||[]).map(h=>`<div class=ol-row style="--rc:${h.result=='win'?'#6fbf6a':'#e0603f'}"><div class=ol-who><b>${h.result=='win'?'Victory':'Defeat'} vs ${esc(h.opp)}</b><small class=mut>${esc(h.mode)}${h.rd!=null&&h.mode=='ranked'?', '+(h.rd>=0?'+':'')+h.rd+' rating':''}${h.reason&&h.reason!='normal'?', '+esc(h.reason):''} · ${new Date(h.time).toLocaleString()}</small></div><button data-a=o_hexp data-id=${esc(h.id)}>Export log</button></div>`).join('')||'<div class="ol-card mut ol-center">No online matches yet.</div>'}</div>`;
+ if(!m)return `<div class="wrap ol">${head('Online')}<div class=ol-card><h3>Sign in or create an account</h3><p class=mut>Accounts are standalone. You can link Discord afterwards for login and password recovery.</p>
+ <div class=ol-field><label for=ou>Username</label><input id=ou value="${esc(f.u)}" maxlength=20 autocomplete=username placeholder="3-20 letters, numbers, _"></div>
+ <div class=ol-field><label for=op>Password</label><input id=op type=password value="${esc(f.p)}" autocomplete=current-password placeholder="8 or more characters"></div>
+ <div class=ol-grid><button class="pri big" data-a=o_login>Log in</button><button class=big data-a=o_register>Register</button></div>
+ <div class=ol-or>or</div>
+ <div class=ol-grid><button class=dc data-a=o_discord data-m=login>Log in with Discord</button><button data-a=o_discord data-m=reset>Forgot password</button></div></div></div>`;
+ const ok=deckIds.length==60,can=ok&&!OL.cur;
+ return `<div class="wrap ol">${head('Online')}
+ <div class=ol-card><div class=ol-top><div><div class=ol-name>${esc(m.username)}</div><div class=mut>${m.discord?dcName(m.discord):'Discord not linked'}</div></div>${rankBadge(m.rating)}</div>
+ <div class=ol-stats>${olStat('Rating',m.rating)}${olStat('Wins',m.wins)}${olStat('Losses',m.losses)}</div>
+ <div class=ol-deck><span class=mut>Active deck</span><b>${esc(deckNm)}</b><span class="${ok?'mut':'ol-bad'}">${deckIds.length}/60</span><button data-a=deck>Deck builder</button></div></div>
+ ${OL.cur?`<div class="ol-card ol-gold"><h3>You have a match in progress</h3><button class="pri big" data-a=o_resume>Resume match</button></div>`:''}
+ ${ok?'':'<div class=ol-msg>Your active deck needs exactly 60 cards before you can play online.</div>'}
+ <div class=ol-card><h3>Play</h3><div class=ol-grid><button class="pri big" data-a=o_qranked ${can?'':'disabled'}>Ranked match</button><button class=big data-a=o_qcasual ${can?'':'disabled'}>Casual match</button></div>
+ <div class=ol-or>or play a friend</div>
+ <div class=ol-join><button data-a=o_rcreate ${can?'':'disabled'}>Create private room</button><input id=orm placeholder="CODE" value="${esc(f.room)}" maxlength=6 autocomplete=off><button data-a=o_rjoin ${can?'':'disabled'}>Join</button></div></div>
+ <div class=ol-grid3><button data-a=o_board>Leaderboard</button><button data-a=o_hist>Match history</button>${m.discord?'<button data-a=o_unlink>Unlink Discord</button>':'<button class=dc data-a=o_discord data-m=link>Link Discord</button>'}</div>
+ <div class=ol-foot><button data-a=o_logout>Log out</button></div></div>`}
 async function loadMe(){const r=await apiCall('me');OL.me=r.ok?r.d.me:null;OL.cur=r.ok?r.d.current:null;if(screen=='online')render()}
 function oPoll(fn){oStop();OL.timer=setInterval(fn,1500)}
 async function oAuth(kind){const f=OL.form;if(!f.u||!f.p){OL.msg='Enter a username and password.';return}const r=await apiCall(kind,{username:f.u,password:f.p});if(!r.ok){OL.msg=r.d.err||'Failed.';return}f.p='';OL.msg=kind=='register'?'Account created.':'';OL.me=r.d.me;OL.cur=r.d.current}
@@ -41,6 +52,7 @@ async function onlineAct(a,t){
  else if(a=='o_board'){const r=await apiCall('leaderboard');OL.board=r.ok?r.d.users:[];OL.sub='board'}
  else if(a=='o_hist'){const r=await apiCall('history');OL.hist=r.ok?r.d.matches:[];OL.sub='hist'}
  else if(a=='o_hexp'){try{const r=await fetch('/api/match/'+t.dataset.id+'/log',{credentials:'same-origin'});const tx=await r.text(),u=URL.createObjectURL(new Blob([tx],{type:'text/plain'})),l=document.createElement('a');l.href=u;l.download='elemental-clash-online-'+t.dataset.id+'.txt';l.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}catch(e){OL.msg='Export failed.'}}
+ else if(a=='o_rcopy'){try{await navigator.clipboard.writeText(OL.room.code);OL.msg='Code copied.'}catch(e){OL.msg='Could not copy. Select the code manually.'}}
  else if(a=='o_resume')return startNet(OL.cur,'resumed');
  render()}
 function netLeave(){if(NET){const n=NET;NET=null;n.stop=true;if(G&&!G.over)apiCall('match/'+n.id+'/forfeit',{})}G=null;FX={};FXT={};GH=[]}
