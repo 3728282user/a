@@ -299,7 +299,7 @@ function netAct(st,k,req){
  ev.fxq=G.fxq;ev.dfx=G.dfx;ev.tch=G.turn!=t0;
  G.ui[k]={mode,sel,cf,msg};if(ev.tch)G.ui[1-k]={};
  delete G.mode;delete G.sel;delete G.cf;delete G.msg;delete G.pv;delete G.d;
- G.msg='';G.fxq=[];G.dfx=[0,0];
+ G.msg='';G.bn='';G.fxq=[];G.dfx=[0,0];
  if(over){G.over='done';G.winner=over=='win'?k:1-k}
  G.p.forEach(p=>p.hand.sort(handCmp));
  return{st:{g:G,uid,ev}}}
@@ -309,7 +309,7 @@ function netView(st,k){
  const m=g.p[0],o=g.p[1];o.hand=o.hand.map(()=>({hidden:1,kind:'?',name:'?'}));o.deck=o.deck.map(()=>0);m.deck=m.deck.map(()=>0);o.traps=o.traps.map(()=>({hidden:1,kind:'t',name:'Trap'}));
  g.over=st.g.over?(st.g.winner==k?'win':'lose'):null;delete g.ui;delete g.winner;g.log=g.log.slice(-120);g.tn=m.tn||0;g.net=1;
  const e=st.ev?(k==1?mirrorEv(st.ev):st.ev):{fx:{},fxt:{},gh:[],fxq:[],dfx:null};
- g.fxq=e.fxq||[];g.dfx=e.dfx||[0,0];if(e.tch&&!g.over)g.bn=g.turn==0?'Your turn':o.name+"'s turn";
+ g.fxq=e.fxq||[];g.dfx=e.dfx||[0,0];g.bn='';if(e.tch&&!g.over)g.bn=g.turn==0?'Your turn':o.name+"'s turn";
  return{g,ev:{fx:e.fx||{},fxt:e.fxt||{},gh:e.gh||[]}}}
 const EC={CARDS,LIM,RN,PRE,validDeck,netStart,netAct,netView};
 
