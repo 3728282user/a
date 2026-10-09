@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=path.join(path.dirname(fileURLToPath(import.meta.url)),'..');
+const pub=f=>path.join(root,'public',f);
+const engine=fs.readFileSync(pub('engine.js'),'utf8');
+fs.mkdirSync(path.join(root,'shared'),{recursive:true});
+fs.writeFileSync(path.join(root,'shared','engine.mjs'),`export function createEngine(){\n${engine}\nreturn EC}\n`);
+const html=fs.readFileSync(pub('index.html'),'utf8');
+const inline=['engine.js','client.js','online.js'].map(f=>fs.readFileSync(pub(f),'utf8')).join('\n');
+const single=html.replace(/<script src="engine\.js"><\/script>\s*<script src="client\.js"><\/script>\s*<script src="online\.js"><\/script>/,()=>`<script>\n${inline}\n</script>`).replace('<link rel="manifest" href="manifest.webmanifest">','');
+fs.mkdirSync(path.join(root,'dist'),{recursive:true});
+fs.writeFileSync(path.join(root,'dist','elemental-clash.html'),single);
+console.log('built shared/engine.mjs and dist/elemental-clash.html');

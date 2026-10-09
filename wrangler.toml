@@ -1,0 +1,8 @@
+name = "elemental-clash"
+pages_build_output_dir = "public"
+compatibility_date = "2025-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "elemental-clash"
+database_id = "0af93952-7502-48be-85f3-e2889883560f"

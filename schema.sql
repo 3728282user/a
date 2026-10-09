@@ -1,0 +1,52 @@
+CREATE TABLE IF NOT EXISTS users(
+ id INTEGER PRIMARY KEY AUTOINCREMENT,
+ username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+ pass_hash TEXT NOT NULL,
+ salt TEXT NOT NULL,
+ rating INTEGER NOT NULL DEFAULT 1000,
+ wins INTEGER NOT NULL DEFAULT 0,
+ losses INTEGER NOT NULL DEFAULT 0,
+ discord_id TEXT UNIQUE,
+ discord_name TEXT,
+ discord_avatar TEXT,
+ created INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS sessions(token_hash TEXT PRIMARY KEY, user_id INTEGER NOT NULL, expires INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS resets(token_hash TEXT PRIMARY KEY, user_id INTEGER NOT NULL, expires INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS queue(
+ user_id INTEGER PRIMARY KEY,
+ mode TEXT NOT NULL,
+ deck TEXT NOT NULL,
+ rating INTEGER NOT NULL,
+ joined INTEGER NOT NULL,
+ match_id TEXT
+);
+CREATE TABLE IF NOT EXISTS rooms(
+ code TEXT PRIMARY KEY,
+ host_id INTEGER NOT NULL,
+ host_deck TEXT NOT NULL,
+ match_id TEXT,
+ created INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS matches(
+ id TEXT PRIMARY KEY,
+ p0 INTEGER NOT NULL,
+ p1 INTEGER NOT NULL,
+ mode TEXT NOT NULL,
+ state TEXT NOT NULL,
+ ver INTEGER NOT NULL DEFAULT 1,
+ status TEXT NOT NULL DEFAULT 'active',
+ winner INTEGER,
+ reason TEXT,
+ deadline INTEGER NOT NULL,
+ created INTEGER NOT NULL,
+ updated INTEGER NOT NULL,
+ r0 INTEGER,
+ r1 INTEGER,
+ d0 INTEGER,
+ d1 INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_matches_p0 ON matches(p0, status);
+CREATE INDEX IF NOT EXISTS idx_matches_p1 ON matches(p1, status);
+CREATE INDEX IF NOT EXISTS idx_users_rating ON users(rating DESC);
+CREATE INDEX IF NOT EXISTS idx_sessions_exp ON sessions(expires);
